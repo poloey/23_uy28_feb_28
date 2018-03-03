@@ -3,41 +3,36 @@
 ## connection with pdo 
 
 ~~~php
-$con = new PDO('mysql:dbname=feni;host=localhost', 'root', '');
+$con = mysqli_connect('localhost', 'root', '', 'feni');
 ~~~
 
 ## create teacher table 
-
 ~~~php
-$statement = $con->prepare('
+$con->query('drop table if exists teachers');
+$con->query('
   create table teachers(
     id serial,
     name varchar(30),
     email varchar(30)
   )
  ');
-$statement->execute();
 ~~~
 
 ## seeding with dummy data 
 
 ~~~php
-$statement = $con->prepare('insert into teachers(name, email) values(:name, :email)');
-$statement->execute([
-  ':name' => 'sarwar',
-  ':email' => 'sarwar@gmail.com'
-]);
+$statement = $con->query("insert into teachers(name, email) values('sarwar', 'sarwar@gmail.com')");
 ~~~
 
 ## reading from database 
 
 ~~~php
-$statement = $con->prepare('select * from teachers');
-$statement->execute();
-$teachers = $statement->fetchAll(PDO::FETCH_OBJ);
+$con = mysqli_connect('localhost', 'root', '', 'feni');
+$teachers = $con->query('select * from teachers');
 ~~~
+
 ~~~html
-<?php foreach($teachers as $teacher): ?>
+<?php while($teacher = $teachers->fetch_object()): ?>
   <tr>
     <td><?php echo $teacher->name ?></td>
     <td><?php echo $teacher->email ?></td>
@@ -46,7 +41,7 @@ $teachers = $statement->fetchAll(PDO::FETCH_OBJ);
       <a onclick="return confirm('Are you sure you want to delete this entry?')" href="delete.php?id=<?php echo $teacher->id ?>" class="btn btn-danger">Delete</a>
     </td>
   </tr>
-<?php endforeach; ?>
+<?php endwhile; ?>
 ~~~
 
 ## add a teacher 
@@ -55,12 +50,8 @@ $teachers = $statement->fetchAll(PDO::FETCH_OBJ);
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
   $name = $_POST['name'];
   $email = $_POST['email'];
-  $con = new PDO('mysql:dbname=feni;host=localhost', 'root', '');
-  $statement = $con->prepare('insert into teachers(name, email) values(:name, :email)');
-  $statement->execute([
-    ':name' => $name,
-    ':email' => $email
-  ]);
+  $con = mysqli_connect('localhost', 'root', '', 'feni');
+  $statement = $con->query("insert into teachers(name, email) values('$name', '$email')");
 }
 ~~~
 
@@ -68,12 +59,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 ~~~php
 $id = $_GET['id'];
-$con = new PDO('mysql:dbname=feni;host=localhost', 'root', '');
-$statement = $con->prepare('select * from teachers where id=:id');
-$statement->execute([
-  ":id" => $id
-]);
-$teacher = $statement->fetch(PDO::FETCH_OBJ);
+$con = mysqli_connect('localhost', 'root', '', 'feni');
+$statement = $con->query("select * from teachers where id=$id");
+$teacher = $statement->fetch_object();
 ~~~
 
 ## update teacher 
@@ -81,12 +69,7 @@ $teacher = $statement->fetch(PDO::FETCH_OBJ);
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
   $name = $_POST['name'];
   $email = $_POST['email'];
-  $statement = $con->prepare('update teachers set name=:name, email=:email where id=:id');
-  $statement->execute([
-    ':name' => $name,
-    ':email' => $email,
-    ':id' => $id
-  ]);
+  $statement = $con->query("update teachers set name='$name', email='$email' where id=$id");
 }
 ~~~
 
@@ -94,10 +77,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 ~~~php
 $id = $_GET['id'];
-$con = new PDO('mysql:dbname=feni;host=localhost', 'root', '');
-$statement = $con->prepare("delete from teachers where id=$id");
-$statement->execute();
-
+$con = mysqli_connect('localhost', 'root', '', 'feni');
+$statement = $con->query("delete from teachers where id=$id");
 header('Location: /');
 ~~~
 
